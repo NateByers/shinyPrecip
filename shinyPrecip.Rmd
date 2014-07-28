@@ -118,7 +118,7 @@ shinyAppDir(
 For the precipitation graph Shiny app, we need to first install the latest version
 of the IDEMdata package.
 
-```{r, message=FALSE}
+```{r, eval=FALSE}
 library(devtools)
 install_github("InDEM/IDEMdata")
 ```
