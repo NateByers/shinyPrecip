@@ -115,12 +115,101 @@ shinyAppDir(
 
 ## Precipitation app
 
-For the precipitation graph Shiny app, we will start with the `ui.R`.
+For the precipitation graph Shiny app, we need to first install the latest version
+of the IDEMdata package.
 
-```{r}
+```{r, message=FALSE}
+library(devtools)
+install_github("InDEM/IDEMdata")
+```
 
+Now let's create the `ui.R` file.
 
+```{r, eval=FALSE}
+library(shiny)
+library(IDEMdata)
 
+data(wide_precip)
 
+# get the station names
+stations <- unique(wide.precip.df$station[!is.na(wide.precip.df$station)])
 
+# load the substance_names vector
+data(substance_names)
+
+# Define UI for application that draws a histogram
+shinyUI(fluidPage(
+
+  # Application title
+  titlePanel("Precipitation Graphs"),
+
+  # Sidebar with two dropdown lists
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("station",
+                  "Station:", 
+                  stations),
+      
+      selectInput("name",
+                  "Sample:", 
+                  substance_names)
+      
+    ),
+
+    # Show the precipitation plot
+    mainPanel(
+      plotOutput("precipPlot")
+    )
+  )
+))
+```
+
+And here's the `server.R` file.
+
+```{r, eval=FALSE}
+library(shiny)
+library(IDEMdata)
+library(lattice)
+library(latticeExtra)
+
+data(wide_precip)
+
+# get the sample column names
+samples <- colnames(wide.precip.df)[8:34]
+
+# load the substance_names vector
+data(substance_names)
+
+# Define server logic required to draw a lattice graph
+shinyServer(function(input, output) {
+
+  output$precipPlot <- renderPlot({
+    sample.column <- samples[substance_names == input$name]
+    
+    prSubsetPlot(data = wide.precip.df, site = input$station, site.col = "station", 
+                 date.col = "date", precip.col = "precipitation",  
+                 sample.col = sample.column, sample.name = input$name, 
+                 conditioned = "TRUE", save = FALSE)
+  })
+
+})
+```
+
+To run the app, we place the `ui.R` and `server.R` scripts in one file and use 
+the `runApp()` function. For example, if you place the scripts in a folder called
+"precipApp" in your working directory, you can use the following code to open
+the app:
+
+```{r, eval=FALSE}
+runApp(appDir = "precipApp")
+```
+
+```{r, echo=FALSE}
+shinyAppDir(
+  "precipApp",
+  options=list(
+    width="100%", height=550
+  )
+)
+```
 
